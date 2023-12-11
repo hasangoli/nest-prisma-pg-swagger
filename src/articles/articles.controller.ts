@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -60,8 +61,11 @@ export class ArticlesController {
    * @param {string} id - The ID of the article to find.
    * @return {any} The found article.
    */
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.articlesService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const article = await this.articlesService.findOne(id);
+    if (!article)
+      throw new NotFoundException(`Article with ${id} id does not exist.`);
+    return article;
   }
 
   @Patch(':id')
