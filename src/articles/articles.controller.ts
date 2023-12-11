@@ -28,8 +28,12 @@ export class ArticlesController {
    * @param {CreateArticleDto} createArticleDto - The data to create the article.
    * @return {Promise<ArticleEntity>} - The created article.
    */
-  create(@Body() createArticleDto: CreateArticleDto): Promise<ArticleEntity> {
-    return this.articlesService.create(createArticleDto);
+  async create(
+    @Body() createArticleDto: CreateArticleDto,
+  ): Promise<ArticleEntity> {
+    return new ArticleEntity(
+      await this.articlesService.create(createArticleDto),
+    );
   }
 
   @Get()
@@ -39,8 +43,9 @@ export class ArticlesController {
    *
    * @return {Promise<ArticleEntity[]>} The list of articles.
    */
-  findAll(): Promise<ArticleEntity[]> {
-    return this.articlesService.findAll();
+  async findAll(): Promise<ArticleEntity[]> {
+    const articles = await this.articlesService.findAll();
+    return articles.map((article) => new ArticleEntity(article));
   }
 
   @Get('drafts')
@@ -50,8 +55,9 @@ export class ArticlesController {
    *
    * @return {Promise<ArticleEntity[]>} A promise that resolves to an array of ArticleEntity objects representing the draft articles.
    */
-  findDrafts(): Promise<ArticleEntity[]> {
-    return this.articlesService.findDrafts();
+  async findDrafts(): Promise<ArticleEntity[]> {
+    const articles = await this.articlesService.findDrafts();
+    return articles.map((article) => new ArticleEntity(article));
   }
 
   @Get(':id')
@@ -65,7 +71,7 @@ export class ArticlesController {
     const article = await this.articlesService.findOne(id);
     if (!article)
       throw new NotFoundException(`Article with ${id} id does not exist.`);
-    return article;
+    return new ArticleEntity(article);
   }
 
   @Patch(':id')
@@ -77,11 +83,13 @@ export class ArticlesController {
    * @param {UpdateArticleDto} updateArticleDto - The data to update the article with.
    * @return {Promise<ArticleEntity>} - The updated article entity.
    */
-  update(
-    @Param('id', ParseIntPipe) id: string,
+  async update(
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateArticleDto: UpdateArticleDto,
   ): Promise<ArticleEntity> {
-    return this.articlesService.update(+id, updateArticleDto);
+    return new ArticleEntity(
+      await this.articlesService.update(id, updateArticleDto),
+    );
   }
 
   @Delete(':id')
@@ -92,7 +100,7 @@ export class ArticlesController {
    * @param {string} id - The ID of the article to be removed.
    * @return {Promise<ArticleEntity>} - A promise that resolves to the removed article entity.
    */
-  remove(@Param('id', ParseIntPipe) id: string): Promise<ArticleEntity> {
-    return this.articlesService.remove(+id);
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<ArticleEntity> {
+    return new ArticleEntity(await this.articlesService.remove(id));
   }
 }

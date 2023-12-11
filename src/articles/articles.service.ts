@@ -42,7 +42,10 @@ export class ArticlesService {
    * @return {Promise<Article>} A promise that resolves to the found article, or null if not found.
    */
   findOne(id: number) {
-    return this.prismaService.article.findUnique({ where: { id } });
+    return this.prismaService.article.findUnique({
+      where: { id },
+      include: { author: true },
+    });
   }
 
   /**
