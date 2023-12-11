@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -59,8 +60,8 @@ export class ArticlesController {
    * @param {string} id - The ID of the article to find.
    * @return {any} The found article.
    */
-  findOne(@Param('id') id: string) {
-    return this.articlesService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.articlesService.findOne(id);
   }
 
   @Patch(':id')
@@ -73,7 +74,7 @@ export class ArticlesController {
    * @return {Promise<ArticleEntity>} - The updated article entity.
    */
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateArticleDto: UpdateArticleDto,
   ): Promise<ArticleEntity> {
     return this.articlesService.update(+id, updateArticleDto);
@@ -87,7 +88,7 @@ export class ArticlesController {
    * @param {string} id - The ID of the article to be removed.
    * @return {Promise<ArticleEntity>} - A promise that resolves to the removed article entity.
    */
-  remove(@Param('id') id: string): Promise<ArticleEntity> {
+  remove(@Param('id', ParseIntPipe) id: string): Promise<ArticleEntity> {
     return this.articlesService.remove(+id);
   }
 }
