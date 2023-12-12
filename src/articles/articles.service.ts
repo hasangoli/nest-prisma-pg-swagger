@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
+import { ArticleEntity } from './entities/article.entity';
 
 @Injectable()
 export class ArticlesService {
@@ -11,18 +12,20 @@ export class ArticlesService {
    * Creates an article using the provided data.
    *
    * @param {CreateArticleDto} createArticleDto - The data for creating the article.
-   * @return {Promise<Article>} A promise that resolves to the created article.
+   * @returns {Promise<ArticleEntity>} A promise that resolves to the created article.
    */
-  create(createArticleDto: CreateArticleDto) {
+  create(createArticleDto: CreateArticleDto): Promise<ArticleEntity> {
+    // Create the article using the provided data
     return this.prismaService.article.create({ data: createArticleDto });
   }
 
   /**
-   * Retrieves all articles that are published.
+   * Retrieves all published articles.
    *
-   * @return {Promise<Article[]>} An array of published articles.
+   * @returns {Promise<ArticleEntity[]>} An array of published articles.
    */
-  findAll() {
+  findAll(): Promise<ArticleEntity[]> {
+    // Use the Prisma ORM to retrieve all articles where the published flag is true
     return this.prismaService.article.findMany({ where: { published: true } });
   }
 
@@ -31,21 +34,31 @@ export class ArticlesService {
    *
    * @return {Article[]} An array of draft articles.
    */
-  findDrafts() {
+  findDrafts(): Promise<ArticleEntity[]> {
+    // Use the Prisma ORM to query the database for draft articles
     return this.prismaService.article.findMany({ where: { published: false } });
   }
 
   /**
-   * Finds and returns a single article based on the provided ID.
+   * Finds a single article by its ID.
    *
    * @param {number} id - The ID of the article to find.
-   * @return {Promise<Article>} A promise that resolves to the found article, or null if not found.
+   * @returns {Promise<ArticleEntity>} A promise that resolves to the found article, or null if not found.
    */
-  findOne(id: number) {
-    return this.prismaService.article.findUnique({
+  async findOne(id: number): Promise<ArticleEntity> {
+    // Find the article using the provided ID
+    const article = await this.prismaService.article.findUnique({
       where: { id },
       include: { author: true },
     });
+
+    // Throw an exception if the article is not found
+    if (!article) {
+      throw new NotFoundException(`Article with ID ${id} not found`);
+    }
+
+    // Return the found article
+    return article;
   }
 
   /**
@@ -53,9 +66,23 @@ export class ArticlesService {
    *
    * @param {number} id - The ID of the article to be updated.
    * @param {UpdateArticleDto} updateArticleDto - The data to update the article with.
-   * @return {Promise<Article>} A promise that resolves to the updated article.
+   * @return {Promise<ArticleEntity>} A promise that resolves to the updated article.
    */
-  update(id: number, updateArticleDto: UpdateArticleDto) {
+  async update(
+    id: number,
+    updateArticleDto: UpdateArticleDto,
+  ): Promise<ArticleEntity> {
+    // Find the article with the specified ID
+    const article = await this.prismaService.article.findUnique({
+      where: { id },
+    });
+
+    // If no article is found, throw an exception
+    if (!article) {
+      throw new NotFoundException(`Article with ID ${id} not found`);
+    }
+
+    // Use the Prisma service to update the article
     return this.prismaService.article.update({
       where: { id },
       data: updateArticleDto,
@@ -66,9 +93,21 @@ export class ArticlesService {
    * Removes an article from the database.
    *
    * @param {number} id - The ID of the article to be removed.
-   * @return {Promise<void>} - A promise that resolves when the article is successfully removed.
+   * @throws {NotFoundException} - If the article with the given ID is not found.
+   * @returns {Promise<ArticleEntity>} - A promise that resolves when the article is successfully removed.
    */
-  remove(id: number) {
+  async remove(id: number): Promise<ArticleEntity> {
+    // Find the article with the given ID
+    const article = await this.prismaService.article.findUnique({
+      where: { id },
+    });
+
+    // If the article is not found, throw a NotFoundException
+    if (!article) {
+      throw new NotFoundException(`Article with ID ${id} not found`);
+    }
+
+    // Delete the article with the given ID
     return this.prismaService.article.delete({ where: { id } });
   }
 }

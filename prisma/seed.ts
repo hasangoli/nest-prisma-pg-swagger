@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -6,27 +7,34 @@ const prisma = new PrismaClient();
  * Upserts two articles in the Prisma ORM database.
  *
  * The upsert function will only create a new article if no article matches the where condition.
- * You are using an upsert query instead of a create query because upsert removes errors related to accidentally trying to insert the same record twice.
+ * Using an upsert query removes errors related to accidentally trying to insert the same record twice.
  */
 const main = async () => {
   // create two dummy users
+  const passwordSabin = await bcrypt.hash('password-sabin', 10); // hash password for user1
+  const passwordAlex = await bcrypt.hash('password-alex', 10); // hash password for user2
+
   const user1 = await prisma.user.upsert({
     where: { email: 'sabin@adams.com' },
-    update: {},
+    update: {
+      password: passwordSabin,
+    },
     create: {
       email: 'sabin@adams.com',
       name: 'Sabin Adams',
-      password: 'password-sabin',
+      password: passwordSabin,
     },
   });
 
   const user2 = await prisma.user.upsert({
     where: { email: 'alex@ruheni.com' },
-    update: {},
+    update: {
+      password: passwordAlex,
+    },
     create: {
       email: 'alex@ruheni.com',
       name: 'Alex Ruheni',
-      password: 'password-alex',
+      password: passwordAlex,
     },
   });
 

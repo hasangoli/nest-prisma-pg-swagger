@@ -26,25 +26,33 @@ export class ArticlesController {
    * Create a new article.
    *
    * @param {CreateArticleDto} createArticleDto - The data to create the article.
-   * @return {Promise<ArticleEntity>} - The created article.
+   * @returns {Promise<ArticleEntity>} - The created article.
    */
   async create(
     @Body() createArticleDto: CreateArticleDto,
   ): Promise<ArticleEntity> {
-    return new ArticleEntity(
-      await this.articlesService.create(createArticleDto),
-    );
+    // Create an article using the createArticleDto data
+    const createdArticle = await this.articlesService.create(createArticleDto);
+
+    // Create a new instance of the ArticleEntity class using the created article
+    const articleEntity = new ArticleEntity(createdArticle);
+
+    // Return the created article
+    return articleEntity;
   }
 
   @Get()
   @ApiOkResponse({ type: [ArticleEntity] })
   /**
-   * Finds all the articles.
+   * Retrieves all articles from the database.
    *
-   * @return {Promise<ArticleEntity[]>} The list of articles.
+   * @returns {Promise<ArticleEntity[]>} The list of articles.
    */
   async findAll(): Promise<ArticleEntity[]> {
+    // Retrieve all articles from the articles service
     const articles = await this.articlesService.findAll();
+
+    // Map each article to a new ArticleEntity instance
     return articles.map((article) => new ArticleEntity(article));
   }
 
@@ -53,24 +61,37 @@ export class ArticlesController {
   /**
    * Retrieves a list of draft articles.
    *
-   * @return {Promise<ArticleEntity[]>} A promise that resolves to an array of ArticleEntity objects representing the draft articles.
+   * @returns {Promise<ArticleEntity[]>} A promise that resolves to an array of ArticleEntity objects representing the draft articles.
    */
   async findDrafts(): Promise<ArticleEntity[]> {
+    // Retrieve draft articles using the articles service
     const articles = await this.articlesService.findDrafts();
-    return articles.map((article) => new ArticleEntity(article));
+
+    // Create an array of ArticleEntity objects from the retrieved articles
+    const draftArticles = articles.map((article) => new ArticleEntity(article));
+
+    // Return the array of draft articles
+    return draftArticles;
   }
 
   @Get(':id')
   /**
-   * Finds and returns the article with the specified ID.
+   * Retrieves an article by its ID.
    *
-   * @param {string} id - The ID of the article to find.
-   * @return {any} The found article.
+   * @param {string} id - The ID of the article to retrieve.
+   * @returns {Promise<any>} - A promise that resolves to the retrieved article.
+   * @throws {NotFoundException} - If the article with the specified ID does not exist.
    */
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    // Retrieve the article from the articlesService
     const article = await this.articlesService.findOne(id);
-    if (!article)
-      throw new NotFoundException(`Article with ${id} id does not exist.`);
+
+    // Throw an exception if the article does not exist
+    if (!article) {
+      throw new NotFoundException(`Article with ID ${id} does not exist.`);
+    }
+
+    // Return the retrieved article
     return new ArticleEntity(article);
   }
 
@@ -87,20 +108,35 @@ export class ArticlesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateArticleDto: UpdateArticleDto,
   ): Promise<ArticleEntity> {
-    return new ArticleEntity(
-      await this.articlesService.update(id, updateArticleDto),
+    // Call the update method of the articlesService to update the article
+    const updatedArticle = await this.articlesService.update(
+      id,
+      updateArticleDto,
     );
+
+    // Create a new ArticleEntity instance with the updated article data
+    const updatedArticleEntity = new ArticleEntity(updatedArticle);
+
+    // Return the updated article entity
+    return updatedArticleEntity;
   }
 
   @Delete(':id')
   @ApiOkResponse({ type: ArticleEntity })
   /**
-   * A function that removes an article based on the given ID.
+   * Removes an article based on the given ID.
    *
    * @param {string} id - The ID of the article to be removed.
-   * @return {Promise<ArticleEntity>} - A promise that resolves to the removed article entity.
+   * @returns {Promise<ArticleEntity>} - A promise that resolves to the removed article entity.
    */
   async remove(@Param('id', ParseIntPipe) id: number): Promise<ArticleEntity> {
-    return new ArticleEntity(await this.articlesService.remove(id));
+    // Call the remove method of the articlesService passing in the id
+    const removedArticle = await this.articlesService.remove(id);
+
+    // Create a new instance of ArticleEntity with the removedArticle data
+    const removedArticleEntity = new ArticleEntity(removedArticle);
+
+    // Return the removedArticleEntity
+    return removedArticleEntity;
   }
 }
