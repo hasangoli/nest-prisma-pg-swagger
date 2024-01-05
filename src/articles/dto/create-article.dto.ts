@@ -31,7 +31,6 @@ export class CreateArticleDto {
 
   @IsString()
   @IsNotEmpty()
-  @ApiProperty()
   @ApiProperty({
     description: 'The body of the article',
     example: 'This is the body of the article',
